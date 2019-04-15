@@ -12,14 +12,14 @@ def Inner_Loop(A,B,Q,R):
 	K=-np.dot(np.linalg.inv(R+np.dot(np.dot(B.T,P),B)),np.dot(np.dot(B.T,P),A))
 	return (P,K)
 def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init='random'):
-	p_v=B.shape[1]
-	p_w=C.shape[1]
+	p_b=B.shape[1]
+	p_c=C.shape[1]
 	p_x=A.shape[1]
 	if type_init=='zero':
-		L_init=np.zeros((p_v,p_x))
+		L_init=np.zeros((p_b,p_x))
 		P_init=np.zeros((p_x,p_x))
 	elif type_init=='random':
-		L_init=np.random.randn(p_v,p_x)/10
+		L_init=np.random.randn(p_b,p_x)/10
 		P_init=np.random.randn(p_x,p_x)
 		P_init=np.dot(P_init.T,P_init)
 	P_t=P_init*1
@@ -47,7 +47,7 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 		L_t=L_t1
 
 
-def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None):
+def Exp(p_x=2,p_b=2,p_c=2,type_pi='exact',type_matrix='random',matrix_file=None):
 	if type_matrix=='random':
 		if os.path.exists('counter.txt')==True:
 			counter_file=open('counter.txt','r')
@@ -58,15 +58,15 @@ def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None)
 		else:
 			counter=0
 		A=np.random.randn(p_x,p_x)/5
-		B=np.random.randn(p_x,p_v)
-		C=np.random.randn(p_x,p_w)
-		R_LL=np.random.randn(p_v,p_v)
+		B=np.random.randn(p_x,p_b)
+		C=np.random.randn(p_x,p_c)
+		R_LL=np.random.randn(p_b,p_b)
 		R_LL=np.dot(R_LL,R_LL.T)
-		R_LK=np.random.randn(p_w,p_w)
+		R_LK=np.random.randn(p_c,p_c)
 		R_LK=np.dot(R_LK,R_LK.T)
-		R_KL=np.random.randn(p_v,p_v)
+		R_KL=np.random.randn(p_b,p_b)
 		R_KL=np.dot(R_KL,R_KL.T)
-		R_KK=np.random.randn(p_w,p_w)
+		R_KK=np.random.randn(p_c,p_c)
 		R_KK=np.dot(R_KK,R_KK.T)
 		Q_L=np.random.randn(p_x,p_x)
 		Q_L=np.dot(Q_L,Q_L.T)
@@ -93,6 +93,6 @@ def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None)
 	print(np.linalg.eig(A))
 	Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi)
 if __name__=='__main__':
-	Exp(p_x=8,p_v=17,p_w=2)
-	#Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_3.mat')
+	Exp(p_x=8,p_b=17,p_c=2)
+	#Exp(p_x=8,p_b=17,p_c=2,type_matrix='from_file',matrix_file='random_matrix_3.mat')
 	#exp(type_pi='modified')
