@@ -11,7 +11,7 @@ def Inner_Loop(A,B,Q,R):
 		P=P_new
 	K=-np.dot(np.linalg.inv(R+np.dot(np.dot(B.T,P),B)),np.dot(np.dot(B.T,P),A))
 	return (P,K)
-def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init='random'):
+def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init='zero',modified_m=None):
 	p_v=B.shape[1]
 	p_w=C.shape[1]
 	p_x=A.shape[1]
@@ -30,24 +30,57 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 	while not (converge or diverge):
 		inner_P,K_t=Inner_Loop(A+np.dot(B,L_t),C,Q_K+np.dot(np.dot(L_t.T,R_KL),L_t),R_KK)
 		if type_pi=='modified':
-			P_t1=np.dot(np.dot((A+np.dot(B,L_t)+np.dot(C,K_t)).T,P_t),(A+np.dot(B,L_t)+np.dot(C,K_t)))
-			P_t1=P_t1+Q_L+np.dot(np.dot(L_t.T,R_LL),L_t)+np.dot(np.dot(K_t.T,R_LK),K_t)
+			if modified_m is None:
+				modified_m=1
+			P_tnow=P_t*1
+			for i in range(modified_m):
+				P_t1=np.dot(np.dot((A+np.dot(B,L_t)+np.dot(C,K_t)).T,P_tnow),(A+np.dot(B,L_t)+np.dot(C,K_t)))
+				P_t1=P_t1+Q_L+np.dot(np.dot(L_t.T,R_LL),L_t)+np.dot(np.dot(K_t.T,R_LK),K_t)
+				P_tnow=P_t1*1
 			L_t1=np.dot(np.dot(np.dot(np.linalg.inv(R_LL+np.dot(np.dot(B.T,P_t1),B)),B.T),P_t1),(A-np.dot(C,K_t)))
 		elif type_pi=='exact':
+			P_tnow=P_t*1
+			counter_pi=0
+			while True:
+				P_t1=np.dot(np.dot((A+np.dot(B,L_t)+np.dot(C,K_t)).T,P_tnow),(A+np.dot(B,L_t)+np.dot(C,K_t)))
+				P_t1=P_t1+Q_L+np.dot(np.dot(L_t.T,R_LL),L_t)+np.dot(np.dot(K_t.T,R_LK),K_t)
+				counter_pi+=1
+				if np.sum(np.power(P_tnow-P_t1,2))<1e-5:
+					print(counter_pi)
+					break
+				P_tnow=P_t1*1
+			L_t1=np.dot(np.dot(np.dot(np.linalg.inv(R_LL+np.dot(np.dot(B.T,P_t1),B)),B.T),P_t1),(A-np.dot(C,K_t)))
+			print('not pi square norm of delta p')
+			print(np.sum(np.power(P_t1-P_t,2)))
+			print('not pi eigenvalue of delta p')
+			print(np.linalg.eig(P_t1-P_t)[0])
+			print('not pi leader policy')
+			print(L_t1)
+		elif type_pi=='not_pi':
 			P_t1,L_t1=Inner_Loop(A+np.dot(C,K_t),B,Q_L+np.dot(np.dot(K_t.T,R_LK),K_t),R_LL)
-		print(np.sum(np.power(P_t1-P_t,2)))
 		counter+=1
 		if (np.sum(np.power(P_t1-P_t,2)))<1e-20:
 			converge=True
+			print('converge')
+			print('type:'+type_pi)
 			print(counter)
 		elif (np.sum(np.power(P_t1-P_t,2)))>10000:
-			diverge=True
-			print(counter)
+			if type_pi=='exact':
+				if (np.sum(np.power(P_t1-P_t,2)))>10000000:
+					print('diverge')
+					print('type:'+type_pi)
+					diverge=True
+					print(counter)
+			else:
+				print('diverge')
+				print('type:'+type_pi)
+				diverge=True
+				print(counter)
 		P_t=P_t1
 		L_t=L_t1
 
 
-def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None):
+def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None,modified_m=None):
 	if type_matrix=='random':
 		if os.path.exists('counter.txt')==True:
 			counter_file=open('counter.txt','r')
@@ -90,9 +123,11 @@ def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None)
 		R_LK=matdict['R_LK']
 		Q_L=matdict['Q_L']
 		Q_K=matdict['Q_K']
-	print(np.linalg.eig(A))
-	Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi)
+	print(np.linalg.eig(A)[0])
+	Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi,modified_m=None)
 if __name__=='__main__':
+	Exp(p_x=8,p_v=17,p_w=2,type_pi='not_pi')
+	Exp(p_x=8,p_v=17,p_w=2,type_pi='modified',modified_m=1)
 	Exp(p_x=8,p_v=17,p_w=2)
-	Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_diverge.mat')
+	#Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_diverge.mat')
 	#exp(type_pi='modified')
