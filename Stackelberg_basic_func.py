@@ -41,6 +41,10 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 		elif type_pi=='exact':
 			P_tnow=P_t*1
 			counter_pi=0
+			print('svd of trans')
+			print(np.linalg.svd((A+np.dot(B,L_t)+np.dot(C,K_t)))[1])
+			print('eig of trans')
+			print(np.linalg.eig((A+np.dot(B,L_t)+np.dot(C,K_t)))[0])
 			while True:
 				P_t1=np.dot(np.dot((A+np.dot(B,L_t)+np.dot(C,K_t)).T,P_tnow),(A+np.dot(B,L_t)+np.dot(C,K_t)))
 				P_t1=P_t1+Q_L+np.dot(np.dot(L_t.T,R_LL),L_t)+np.dot(np.dot(K_t.T,R_LK),K_t)
@@ -72,7 +76,7 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 					diverge=True
 					print(counter)
 			elif type_pi=='modified':
-				if (np.sum(np.power(P_t1-P_t,2)))>10000000:
+				if (np.sum(np.power(P_t1-P_t,2)))>100000:
 					print('diverge')
 					print('type:'+type_pi)
 					diverge=True
