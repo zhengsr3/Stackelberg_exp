@@ -94,5 +94,5 @@ def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None)
 	Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi)
 if __name__=='__main__':
 	Exp(p_x=8,p_v=17,p_w=2)
-	#Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_3.mat')
+	Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_diverge.mat')
 	#exp(type_pi='modified')
