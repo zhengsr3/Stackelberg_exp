@@ -50,11 +50,11 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 					break
 				P_tnow=P_t1*1
 			L_t1=np.dot(np.dot(np.dot(np.linalg.inv(R_LL+np.dot(np.dot(B.T,P_t1),B)),B.T),P_t1),(A-np.dot(C,K_t)))
-			print('not pi square norm of delta p')
+			print('exact square norm of delta p')
 			print(np.sum(np.power(P_t1-P_t,2)))
-			print('not pi eigenvalue of delta p')
+			print('exact eigenvalue of delta p')
 			print(np.linalg.eig(P_t1-P_t)[0])
-			print('not pi leader policy')
+			print('exact leader policy')
 			print(L_t1)
 		elif type_pi=='not_pi':
 			P_t1,L_t1=Inner_Loop(A+np.dot(C,K_t),B,Q_L+np.dot(np.dot(K_t.T,R_LK),K_t),R_LL)
@@ -66,6 +66,12 @@ def Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',type_init
 			print(counter)
 		elif (np.sum(np.power(P_t1-P_t,2)))>10000:
 			if type_pi=='exact':
+				if (np.sum(np.power(P_t1-P_t,2)))>10000000:
+					print('diverge')
+					print('type:'+type_pi)
+					diverge=True
+					print(counter)
+			elif type_pi=='modified':
 				if (np.sum(np.power(P_t1-P_t,2)))>10000000:
 					print('diverge')
 					print('type:'+type_pi)
@@ -123,11 +129,15 @@ def Exp(p_x=2,p_v=2,p_w=2,type_pi='exact',type_matrix='random',matrix_file=None,
 		R_LK=matdict['R_LK']
 		Q_L=matdict['Q_L']
 		Q_K=matdict['Q_K']
+	print('eigenvalue of A')
 	print(np.linalg.eig(A)[0])
-	Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi,modified_m=None)
+	if type_pi=='all':
+		Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='not_pi',modified_m=None)
+		Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='modified',modified_m=1)
+		Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi='exact',modified_m=None)
+	else:
+		Policy_Iteration(A,B,C,R_KL,R_LL,R_KK,R_LK,Q_K,Q_L,type_pi=type_pi,modified_m=modified_m)
 if __name__=='__main__':
-	Exp(p_x=8,p_v=17,p_w=2,type_pi='not_pi')
-	Exp(p_x=8,p_v=17,p_w=2,type_pi='modified',modified_m=1)
-	Exp(p_x=8,p_v=17,p_w=2)
+	Exp(p_x=8,p_v=17,p_w=2,type_pi='all')
 	#Exp(p_x=8,p_v=17,p_w=2,type_matrix='from_file',matrix_file='random_matrix_diverge.mat')
 	#exp(type_pi='modified')
